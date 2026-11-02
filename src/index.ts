@@ -1,11 +1,27 @@
-import express, { type Express, type Request, type Response } from "express";
+import express, { type Express } from "express";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PORT } from "./secrets.js";
+import rootRouter from "./routes/index.js";
+import { PrismaClient } from "./generated/prisma/client.js";
+import { errorMiddleware } from "./middlewares/errors.js";
 
 const app: Express = express();
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Bitch ass nigga, I am a MOTHER");
+app.use(express.json());
+
+app.use("/api", rootRouter);
+
+const adapter = new PrismaMariaDb(process.env.DATABASE_URL!, {
+  useTextProtocol: true,
 });
 
-app.listen(3000, () => {
-  console.log("App STARted");
+export const prismaClient = new PrismaClient({
+  adapter,
+  log: ["query"],
+});
+
+app.use(errorMiddleware);
+
+app.listen(PORT, () => {
+  console.log("Here we fucking go");
 });
